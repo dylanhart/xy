@@ -14,7 +14,7 @@ xy.TileState = {
 		name: "y",
 		cssclass: "y"
 	}
-}
+};
 
 // get next state
 xy.TileState.next = function(state) {
@@ -25,7 +25,49 @@ xy.TileState.next = function(state) {
 
 	// default to empty
 	return this.EMPTY;
-}
+};
+
+xy.LineScore = function() {
+	this.tooManyAdjacent = false;
+	this.tooManyOfType = false;
+	this.isDuplicate = false;
+	this.isFull = true;
+};
+
+xy.LineScore.prototype.isValid = function() {
+	return !this.tooManyAdjacent
+			&& !this.tooManyOfType
+			&& !this.isDuplicate
+			&& this.isFull;
+};
+
+xy.Scoring = function(size) {
+	this.rows = [];
+	this.cols = [];
+
+	for (var i = 0; i < size; i++) {
+		this.rows.push(new xy.LineScore());
+		this.cols.push(new xy.LineScore());
+	}
+
+	this.full = null;
+};
+
+xy.Scoring.prototype.isWin = function() {
+	if (!this.full) return false;
+
+	for (var r = 0; r < this.rows.length; r++) {
+		if (!this.rows[r].isValid())
+			return false;
+	}
+
+	for (var c = 0; c < this.cols.length; c++) {
+		if (!this.cols[c].isValid())
+			return false;
+	}
+
+	return true;
+};
 
 xy.Grid = function(parent, size) {
 	if (size % 2 != 0)
@@ -66,7 +108,7 @@ xy.Grid = function(parent, size) {
 	}
 
 	parent.appendChild(this.grid);
-}
+};
 
 xy.Grid.prototype.tileClicked = function(event, r, c) {
 	// console.log("click @ {r: " + r + ", c: " + c + "}");
@@ -84,7 +126,7 @@ xy.Grid.prototype.tileClicked = function(event, r, c) {
 		}
 	}
 
-}
+};
 
 xy.Grid.prototype.trySet = function(r, c, state) {
 	if (!this.hasWon) {
@@ -97,15 +139,20 @@ xy.Grid.prototype.trySet = function(r, c, state) {
 	} else {
 		return false;
 	}
-}
+};
 
 xy.Grid.prototype.checkWin = function() {
-	return this.checkWinRow() && this.checkWinCol();
-}
+	return this.getScore().isWin();
+};
 
-xy.Grid.prototype.checkWinRow = function() {
-	var boardFull = true;
+xy.Grid.prototype.getScore = function() {
+	var score = new xy.Scoring(this.size);
+	this.evalScoreRow(score);
+	this.evalScoreCol(score);
+	return score;
+};
 
+xy.Grid.prototype.evalScoreRow = function(score) {
 	for (var r = 0; r < this.size; r++) {
 		var row = this.gridState[r];
 
@@ -127,8 +174,7 @@ xy.Grid.prototype.checkWinRow = function() {
 				matches++;
 				// 3 in a row
 				if (matches >= 2 && state != xy.TileState.EMPTY) {
-					console.log("invalid: 3 in a row");
-					return false;
+					score.rows[r].tooManyAdjacent = true;
 				}
 			}
 			counts[state.name]++;
@@ -137,8 +183,7 @@ xy.Grid.prototype.checkWinRow = function() {
 		// too many of a letter
 		var high = Math.max(counts.x, counts.y);
 		if (high > this.size / 2) {
-			console.log("invalid: too many of a kind in row");
-			return false;
+			score.rows[r].tooManyOfType = true;
 		}
 
 		// if row is full, check for uniqueness
@@ -146,21 +191,18 @@ xy.Grid.prototype.checkWinRow = function() {
 			for (var r2 = r+1; r2 < this.size; r2++) {
 				// double row
 				if (row == this.gridState[r2]) {
-					console.log("invalid: double row");
-					return false;
+					score.rows[r].isDuplicate = true;
+					score.rows[r2].isDuplicate = true
 				}
 			}
 		} else {
-			boardFull = false;
+			score.rows[r].full = false;
+			score.full = false;
 		}
 	}
+};
 
-	return boardFull;
-}
-
-xy.Grid.prototype.checkWinCol = function() {
-	var boardFull = true;
-
+xy.Grid.prototype.evalScoreCol = function(score) {
 	for (var c = 0; c < this.size; c++) {
 		var last = xy.TileState.EMPTY;
 		var matches = 0;
@@ -180,8 +222,7 @@ xy.Grid.prototype.checkWinCol = function() {
 				matches++;
 				// 3 in a row
 				if (matches >= 2 && state != xy.TileState.EMPTY) {
-					console.log("invalid: 3 in a col");
-					return false;
+					score.cols[c].tooManyAdjacent = true;
 				}
 			}
 			counts[state.name]++;
@@ -190,8 +231,7 @@ xy.Grid.prototype.checkWinCol = function() {
 		// too many of a letter
 		var high = Math.max(counts.x, counts.y);
 		if (high > this.size / 2) {
-			console.log("invalid: too many of a kind in col");
-			return false;
+			score.cols[c].tooManyOfType = true;
 		}
 
 		// if col is full, check for uniqueness
@@ -206,28 +246,27 @@ xy.Grid.prototype.checkWinCol = function() {
 					}
 				}
 				if (!diff) {
-					console.log("invalid: double col");
-					return false;
+					score.rows.cols[c].isDuplicate = true;
+					score.rows.cols[c2].isDuplicate = true;
 				}
 			}
 		} else {
-			boardFull = false;
+			score.cols[c].full = false;
+			score.full = false;
 		}
 	}
-
-	return boardFull;
-}
+};
 
 xy.Grid.prototype.remove = function() {
 	this.grid.parentNode.removeChild(this.grid);
-}
+};
 
 xy.Game = function(parent, size) {
 	this.parent = parent;
 	this.grid = new xy.Grid(parent, size);
-}
+};
 
 xy.Game.prototype.remove = function() {
 	this.grid.remove();
 	this.grid = null;
-}
+};
