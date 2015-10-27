@@ -1,13 +1,22 @@
 
 body {
 	background-color: #fff;
+	font-family: Sans;
+}
+
+.page {
+	width: 95%;
+	max-width: 800px;
+	margin: auto;
+}
+
+.page h1 {
+	text-align: center;
 }
 
 .grid {
 	font-size: 0;
-	width: 80%;
-	max-width: 800px;
-	margin: auto;
+	width: 100%;
 	background-color: #333;
 	border-radius: 4.6%;
 	padding: 1%;
@@ -22,7 +31,6 @@ body {
 }
 
 .tile {
-	font-size: 14pt;
 	display: inline-block;
 	margin: 1%;
 	border-radius: 20%;
