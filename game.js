@@ -246,8 +246,8 @@ xy.Grid.prototype.evalScoreCol = function(score) {
 					}
 				}
 				if (!diff) {
-					score.rows.cols[c].isDuplicate = true;
-					score.rows.cols[c2].isDuplicate = true;
+					score.cols[c].isDuplicate = true;
+					score.cols[c2].isDuplicate = true;
 				}
 			}
 		} else {
