@@ -110,6 +110,10 @@ xy.Grid = function(parent, size) {
 	parent.appendChild(this.grid);
 };
 
+xy.Grid.prototype.remove = function() {
+	this.grid.parentNode.removeChild(this.grid);
+};
+
 xy.Grid.prototype.tileClicked = function(event, r, c) {
 	// console.log("click @ {r: " + r + ", c: " + c + "}");
 
@@ -142,17 +146,22 @@ xy.Grid.prototype.trySet = function(r, c, state) {
 };
 
 xy.Grid.prototype.checkWin = function() {
-	return this.getScore().isWin();
+	return new xy.Validator(this.gridState).getScore().isWin();
 };
 
-xy.Grid.prototype.getScore = function() {
+xy.Validator = function(gridState) {
+	this.gridState = gridState;
+	this.size = this.gridState.length;
+}
+
+xy.Validator.prototype.getScore = function() {
 	var score = new xy.Scoring(this.size);
 	this.evalScoreRow(score);
 	this.evalScoreCol(score);
 	return score;
 };
 
-xy.Grid.prototype.evalScoreRow = function(score) {
+xy.Validator.prototype.evalScoreRow = function(score) {
 	for (var r = 0; r < this.size; r++) {
 		var row = this.gridState[r];
 
@@ -202,7 +211,7 @@ xy.Grid.prototype.evalScoreRow = function(score) {
 	}
 };
 
-xy.Grid.prototype.evalScoreCol = function(score) {
+xy.Validator.prototype.evalScoreCol = function(score) {
 	for (var c = 0; c < this.size; c++) {
 		var last = xy.TileState.EMPTY;
 		var matches = 0;
@@ -255,10 +264,6 @@ xy.Grid.prototype.evalScoreCol = function(score) {
 			score.full = false;
 		}
 	}
-};
-
-xy.Grid.prototype.remove = function() {
-	this.grid.parentNode.removeChild(this.grid);
 };
 
 xy.Game = function(parent, size) {
