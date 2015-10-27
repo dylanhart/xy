@@ -23,24 +23,27 @@ body {
 }
 
 .grid4 .tile {
+	margin: 1%;
 	width: 23%;
 }
 
 .grid6 .tile {
-	width: 14.66666%;
+	margin: .75%;
+	width: 15.16666%;
 }
 
 .grid8 .tile {
-	width: 10.5%;
+	margin: .5%;
+	width: 11.5%;
 }
 
 .grid10 .tile {
-	width: 8%;
+	margin: .5%;
+	width: 9%;
 }
 
 .tile {
 	display: inline-block;
-	margin: 1%;
 	border-radius: 20%;
 	background-color: #666;
 	border-bottom: 4px solid #444;
