@@ -50,7 +50,7 @@ xy.Scoring = function(size) {
 		this.cols.push(new xy.LineScore());
 	}
 
-	this.full = null;
+	this.full = true;
 };
 
 xy.Scoring.prototype.isWin = function() {
