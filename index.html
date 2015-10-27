@@ -1,36 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<meta charset="utf-8" />
 	<title>XZ</title>
 	<link rel="stylesheet" type="text/css" href="./style.css">
 </head>
 <body>
-	<div class="grid grid4">
-		<div class="grid-row">
-			<div class="tile"></div>
-			<div class="tile x"></div>
-			<div class="tile"></div>
-			<div class="tile"></div>
-		</div>
-		<div class="grid-row">
-			<div class="tile"></div>
-			<div class="tile y"></div>
-			<div class="tile x"></div>
-			<div class="tile"></div>
-		</div>
-		<div class="grid-row">
-			<div class="tile"></div>
-			<div class="tile y"></div>
-			<div class="tile"></div>
-			<div class="tile"></div>
-		</div>
-		<div class="grid-row">
-			<div class="tile"></div>
-			<div class="tile"></div>
-			<div class="tile"></div>
-			<div class="tile"></div>
-		</div>
-	</div>
+	<div id="#container"></div>
+
 	<script type="text/javascript" src="./game.js"></script>
+	<script type="text/javascript">
+		var game;
+		window.onload = function() {
+			var container = document.getElementById("#container");
+			game = new xy.Game(container);
+		};
+	</script>
 </body>
 </html>
