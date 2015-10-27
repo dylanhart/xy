@@ -63,13 +63,35 @@ xy.Grid.prototype.tileClicked = function(event, r, c) {
 
 	var tile = event.target;
 
-	var state = this.gridState[r][c] = xy.TileState.next(this.gridState[r][c]);
+	var newState = xy.TileState.next(this.gridState[r][c]);
 
-	if (state.cssclass) {
-		tile.className = "tile " + state.cssclass;
-	} else {
-		tile.className = "tile";
+	// try to set tile
+	if (this.trySet(r, c, newState)) {
+		if (newState.cssclass) {
+			tile.className = "tile " + newState.cssclass;
+		} else {
+			tile.className = "tile";
+		}
 	}
+
+}
+
+xy.Grid.prototype.trySet = function(r, c, state) {
+	var old = this.gridState[r][c];
+	this.gridState[r][c] = state;
+
+	// revert state if move is invalid
+	if (!this.isValid()) {
+		this.gridState[r][c] = old;
+		return false;
+	}
+
+	return true;
+}
+
+xy.Grid.prototype.isValid = function() {
+	// add grid state validiation here
+	return true;
 }
 
 xy.Game = function(parent) {
