@@ -8,7 +8,17 @@
 <body>
 	<div class="page">
 		<h1>XY</h1>
-		<div id="#container"></div>
+		<div id="container"></div>
+		<div class="controls">
+			<label for="#boardSize">Board Size:</label>
+			<select id="boardSize">
+				<option selected>4</option>
+				<option>6</option>
+				<option>8</option>
+				<option>10</option>
+			</select>
+			<button id="startBtn">Start</button>
+		</div>
 		<h3>Instructions:</h3>
 		<ul>
 			<li>Click a tile to change it</li>
@@ -25,8 +35,14 @@
 	<script type="text/javascript">
 		var game;
 		window.onload = function() {
-			var container = document.getElementById("#container");
-			game = new xy.Game(container);
+			var container = document.getElementById("container");
+			game = new xy.Game(container, 4);
+
+			document.getElementById("startBtn").addEventListener("click", function(e) {
+				game.remove();
+				var sizeSelect = document.getElementById("boardSize");
+				game = new xy.Game(container, parseInt(boardSize.value));
+			});
 		};
 	</script>
 </body>

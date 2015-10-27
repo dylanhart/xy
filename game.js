@@ -218,7 +218,16 @@ xy.Grid.prototype.checkWinCol = function() {
 	return boardFull;
 }
 
-xy.Game = function(parent) {
+xy.Grid.prototype.remove = function() {
+	this.grid.parentNode.removeChild(this.grid);
+}
+
+xy.Game = function(parent, size) {
 	this.parent = parent;
-	this.grid = new xy.Grid(parent, 6);
+	this.grid = new xy.Grid(parent, size);
+}
+
+xy.Game.prototype.remove = function() {
+	this.grid.remove();
+	this.grid = null;
 }

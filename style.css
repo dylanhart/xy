@@ -30,6 +30,14 @@ body {
 	width: 14.66666%;
 }
 
+.grid8 .tile {
+	width: 10.5%;
+}
+
+.grid10 .tile {
+	width: 8%;
+}
+
 .tile {
 	display: inline-block;
 	margin: 1%;
