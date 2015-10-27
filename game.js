@@ -100,9 +100,13 @@ xy.Grid.prototype.trySet = function(r, c, state) {
 }
 
 xy.Grid.prototype.checkWin = function() {
+	return this.checkWinRow() && this.checkWinCol();
+}
+
+xy.Grid.prototype.checkWinRow = function() {
 	var boardFull = true;
 
-	for (var r = 0; r < this.gridState.length; r++) {
+	for (var r = 0; r < this.size; r++) {
 		var row = this.gridState[r];
 
 		var last = xy.TileState.EMPTY;
@@ -113,7 +117,7 @@ xy.Grid.prototype.checkWin = function() {
 			y: 0
 		};
 
-		for (var c = 0; c < row.length; c++) {
+		for (var c = 0; c < this.size; c++) {
 			var state = row[c];
 
 			if (state != last) {
@@ -133,13 +137,13 @@ xy.Grid.prototype.checkWin = function() {
 		// too many of a letter
 		var high = Math.max(counts.x, counts.y);
 		if (high > this.size / 2) {
-			console.log("invalid: too many of a kind")
+			console.log("invalid: too many of a kind in row");
 			return false;
 		}
 
 		// if row is full, check for uniqueness
 		if (counts.empty == 0) {
-			for (var r2 = r+1; r2 < this.gridState.length; r2++) {
+			for (var r2 = r+1; r2 < this.size; r2++) {
 				// double row
 				if (row == this.gridState[r2]) {
 					console.log("invalid: double row");
@@ -154,7 +158,67 @@ xy.Grid.prototype.checkWin = function() {
 	return boardFull;
 }
 
+xy.Grid.prototype.checkWinCol = function() {
+	var boardFull = true;
+
+	for (var c = 0; c < this.size; c++) {
+		var last = xy.TileState.EMPTY;
+		var matches = 0;
+		var counts = {
+			empty: 0,
+			x: 0,
+			y: 0
+		};
+
+		for (var r = 0; r < this.size; r++) {
+			var state = this.gridState[r][c];
+
+			if (state != last) {
+				last = state;
+				matches = 0;
+			} else {
+				matches++;
+				// 3 in a row
+				if (matches >= 2 && state != xy.TileState.EMPTY) {
+					console.log("invalid: 3 in a col");
+					return false;
+				}
+			}
+			counts[state.name]++;
+		}
+
+		// too many of a letter
+		var high = Math.max(counts.x, counts.y);
+		if (high > this.size / 2) {
+			console.log("invalid: too many of a kind in col");
+			return false;
+		}
+
+		// if col is full, check for uniqueness
+		if (counts.empty == 0) {
+			for (var c2 = c+1; c2 < this.size; c2++) {
+				var diff = false;
+				for (var r2 = 0; r2 < this.size; r2++) {
+					if (this.gridState[r2][c] != this.gridState[r2][c2]) {
+						// we're different
+						diff = true;
+						break;
+					}
+				}
+				if (!diff) {
+					console.log("invalid: double col");
+					return false;
+				}
+			}
+		} else {
+			boardFull = false;
+		}
+	}
+
+	return boardFull;
+}
+
 xy.Game = function(parent) {
 	this.parent = parent;
-	this.grid = new xy.Grid(parent, 4);
+	this.grid = new xy.Grid(parent, 6);
 }
