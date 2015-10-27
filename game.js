@@ -3,11 +3,15 @@ var xy = {};
 
 // state "enum"
 xy.TileState = {
-	EMPTY: {},
+	EMPTY: {
+		name: "empty"
+	},
 	X: {
+		name: "x",
 		cssclass: "x"
 	},
 	Y: {
+		name: "y",
 		cssclass: "y"
 	}
 }
@@ -24,6 +28,12 @@ xy.TileState.next = function(state) {
 }
 
 xy.Grid = function(parent, size) {
+	if (size % 2 != 0)
+		throw new Error("grid size must be even");
+
+	this.size = size;
+	this.hasWon = false;
+
 	this.gridState = [];
 
 	this.grid = document.createElement("div");
@@ -77,21 +87,71 @@ xy.Grid.prototype.tileClicked = function(event, r, c) {
 }
 
 xy.Grid.prototype.trySet = function(r, c, state) {
-	var old = this.gridState[r][c];
-	this.gridState[r][c] = state;
+	if (!this.hasWon) {
+		this.gridState[r][c] = state;
 
-	// revert state if move is invalid
-	if (!this.isValid()) {
-		this.gridState[r][c] = old;
+		if (this.checkWin()) {
+			this.hasWon = true;
+		}
+		return true;
+	} else {
 		return false;
 	}
-
-	return true;
 }
 
-xy.Grid.prototype.isValid = function() {
-	// add grid state validiation here
-	return true;
+xy.Grid.prototype.checkWin = function() {
+	var boardFull = true;
+
+	for (var r = 0; r < this.gridState.length; r++) {
+		var row = this.gridState[r];
+
+		var last = xy.TileState.EMPTY;
+		var matches = 0;
+		var counts = {
+			empty: 0,
+			x: 0,
+			y: 0
+		};
+
+		for (var c = 0; c < row.length; c++) {
+			var state = row[c];
+
+			if (state != last) {
+				last = state;
+				matches = 0;
+			} else {
+				matches++;
+				// 3 in a row
+				if (matches >= 2 && state != xy.TileState.EMPTY) {
+					console.log("invalid: 3 in a row");
+					return false;
+				}
+			}
+			counts[state.name]++;
+		}
+
+		// too many of a letter
+		var high = Math.max(counts.x, counts.y);
+		if (high > this.size / 2) {
+			console.log("invalid: too many of a kind")
+			return false;
+		}
+
+		// if row is full, check for uniqueness
+		if (counts.empty == 0) {
+			for (var r2 = r+1; r2 < this.gridState.length; r2++) {
+				// double row
+				if (row == this.gridState[r2]) {
+					console.log("invalid: double row");
+					return false;
+				}
+			}
+		} else {
+			boardFull = false;
+		}
+	}
+
+	return boardFull;
 }
 
 xy.Game = function(parent) {
