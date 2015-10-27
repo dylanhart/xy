@@ -151,6 +151,9 @@ xy.Grid.prototype.tileClicked = function(event, r, c) {
 		} else {
 			tile.className = "tile";
 		}
+
+		if (this.hasWon)
+			alert("You won!");
 	}
 
 };
