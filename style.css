@@ -1,0 +1,54 @@
+
+body {
+	background-color: #fff;
+}
+
+.grid {
+	font-size: 0;
+	width: 80%;
+	max-width: 800px;
+	margin: auto;
+	background-color: #333;
+	border-radius: 4.6%;
+	padding: 1%;
+}
+
+.grid4 .tile {
+	width: 23%;
+}
+.grid5 .tile {
+	width: 18%;
+}
+.grid6 .tile {
+	width: 14.66666%;
+}
+
+.tile {
+	font-size: 14pt;
+	display: inline-block;
+	margin: 1%;
+	border-radius: 20%;
+	background-color: #666;
+	border-bottom: 4px solid #444;
+}
+
+/* make square */
+.tile::after {
+	content: "";
+	display: block;
+	padding-bottom: 100%;
+}
+
+.tile.x {
+	background-color: #68f;
+	border-color: #356;
+	background-image: url("./x.svg");
+	background-size: 100%;
+}
+
+.tile.y {
+	background-color: #f66;
+	border-color: #633;
+	background-image: url("./y.svg");
+	background-size: 100%;
+}
