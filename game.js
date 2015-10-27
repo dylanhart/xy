@@ -27,6 +27,15 @@ xy.TileState.next = function(state) {
 	return this.EMPTY;
 };
 
+xy.TileState.opposite = function(state) {
+	if (state === this.X)
+		return this.Y;
+	if (state === this.Y)
+		return this.X;
+
+	return this.EMPTY;
+}
+
 xy.LineScore = function() {
 	this.tooManyAdjacent = false;
 	this.tooManyOfType = false;
@@ -34,11 +43,12 @@ xy.LineScore = function() {
 	this.isFull = true;
 };
 
+xy.LineScore.prototype.hasError = function() {
+	return this.tooManyAdjacent || this.tooManyOfType || this.isDuplicate;
+}
+
 xy.LineScore.prototype.isValid = function() {
-	return !this.tooManyAdjacent
-			&& !this.tooManyOfType
-			&& !this.isDuplicate
-			&& this.isFull;
+	return !this.hasError() && this.isFull;
 };
 
 xy.Scoring = function(size) {
@@ -51,6 +61,20 @@ xy.Scoring = function(size) {
 	}
 
 	this.full = true;
+};
+
+xy.Scoring.prototype.hasError = function() {
+	for (var r = 0; r < this.rows.length; r++) {
+		if (this.rows[r].hasError())
+			return true;
+	}
+
+	for (var c = 0; c < this.cols.length; c++) {
+		if (this.cols[c].hasError())
+			return true;
+	}
+
+	return false;
 };
 
 xy.Scoring.prototype.isWin = function() {
@@ -76,22 +100,23 @@ xy.Grid = function(parent, size) {
 	this.size = size;
 	this.hasWon = false;
 
-	this.gridState = [];
+	this.gridState = new xy.Generator(30).generate(size);
 
 	this.grid = document.createElement("div");
 	this.grid.className = "grid grid" + size;
 
 	for (var r = 0; r < size; r++) {
-		var states = [];
-
 		var row = document.createElement("div");
 		row.className = "grid-row";
 
 		for (var c = 0; c < size; c++) {
-			states.push(xy.TileState.EMPTY);
-
 			var tile = document.createElement("div");
-			tile.className = "tile";
+
+			if (this.gridState[r][c].cssclass) {
+				tile.className = "tile " + this.gridState[r][c].cssclass;
+			} else {
+				tile.className = "tile";
+			}
 
 			tile.addEventListener("click", (function(grid, r, c) {
 				return function(e) {
@@ -103,8 +128,6 @@ xy.Grid = function(parent, size) {
 		}
 
 		this.grid.appendChild(row);
-
-		this.gridState.push(states);
 	}
 
 	parent.appendChild(this.grid);
@@ -201,7 +224,7 @@ xy.Validator.prototype.evalScoreRow = function(score) {
 				// double row
 				if (row == this.gridState[r2]) {
 					score.rows[r].isDuplicate = true;
-					score.rows[r2].isDuplicate = true
+					score.rows[r2].isDuplicate = true;
 				}
 			}
 		} else {
@@ -266,6 +289,92 @@ xy.Validator.prototype.evalScoreCol = function(score) {
 	}
 };
 
+xy.Generator = function(difficulty) {
+	this.difficulty = difficulty;
+};
+
+xy.Generator.prototype.createEmpty = function(size) {
+	var puzzle = [];
+	for (var r = 0; r < size; r++) {
+		puzzle.push(this.getEmptyLine(size));
+	}
+	return puzzle;
+};
+
+xy.Generator.prototype.getPermutedLine = function(size) {
+	var line = Array(size);
+	var last = xy.TileState.EMPTY;
+	var picks = [
+		xy.TileState.X,
+		xy.TileState.Y
+	];
+	var matches = 0;
+	var counts = {
+		x: 0,
+		y: 0
+	};
+	for (var i = 0; i < size; i++) {
+		if (matches == 1) {
+			matches = 0;
+			line[i] = xy.TileState.opposite(last);
+			last = line[i];
+			counts[last.name]++;
+		} else if (Math.max(counts.x, counts.y) == size/2) {
+			var state = counts.x < counts.y ? xy.TileState.X : xy.TileState.Y;
+			while (i < size)
+				line[i++] = state;
+			break;
+		} else {
+			var state = picks[Math.round(Math.random())];
+			if (state == last) {
+				matches++;
+			} else {
+				last = state;
+			}
+			line[i] = state;
+			counts[state.name]++;
+		}
+	}
+	return line;
+};
+
+xy.Generator.prototype.getEmptyLine = function(size) {
+	var line = [];
+	for (var i = 0; i < size; i++)
+		line.push(xy.TileState.EMPTY);
+	return line;
+};
+
+xy.Generator.prototype.generate = function(size) {
+	var puzzle = this.createEmpty(size);
+	var picks = [
+		xy.TileState.X,
+		xy.TileState.Y
+	];
+	var places = [];
+	for (var r = 0; r < size; r++)
+		for (var c = 0; c < size; c++)
+			places.push({r:r,c:c});
+
+	xy.util.shuffle(places);
+
+	var n = size*size * (this.difficulty / 100.0);
+	for (var i = 0; i < n;) {
+		var pos = places.pop();
+		var s = picks[Math.round(Math.random())];
+
+		puzzle[pos.r][pos.c] = s;
+
+		if (new xy.Validator(puzzle).getScore().hasError()) {
+			puzzle[pos.r][pos.c] = xy.TileState.EMPTY;
+		} else {
+			i++;
+		}
+	}
+
+	return puzzle;
+};
+
 xy.Game = function(parent, size) {
 	this.parent = parent;
 	this.grid = new xy.Grid(parent, size);
@@ -274,4 +383,22 @@ xy.Game = function(parent, size) {
 xy.Game.prototype.remove = function() {
 	this.grid.remove();
 	this.grid = null;
+};
+
+xy.util = {};
+xy.util.shuffle = function(arr) {
+	for (var i = arr.length - 1; i > 0; i--) {
+		var p = Math.floor(Math.random()*i);
+		var t = arr[i];
+		arr[i] = arr[p];
+		arr[p] = t;
+	}
+};
+
+xy.util.puzzleToString = function(puzzle) {
+	return puzzle.map(function(r) {
+		return r.map(function(t) {
+			return t.name;
+		}).join(" ");
+	}).join("\n");
 };
