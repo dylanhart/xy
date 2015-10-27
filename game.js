@@ -13,6 +13,16 @@ xy.TileState = {
 	Y: {
 		name: "y",
 		cssclass: "y"
+	},
+	LOCKED_X: {
+		name: "x",
+		cssclass: "x locked",
+		locked: true
+	},
+	LOCKED_Y: {
+		name: "y",
+		cssclass: "y locked",
+		locked: true
 	}
 };
 
@@ -159,6 +169,9 @@ xy.Grid.prototype.tileClicked = function(event, r, c) {
 };
 
 xy.Grid.prototype.trySet = function(r, c, state) {
+	if (this.gridState[r][c].locked)
+		return false;
+
 	if (!this.hasWon) {
 		this.gridState[r][c] = state;
 
@@ -191,7 +204,7 @@ xy.Validator.prototype.evalScoreRow = function(score) {
 	for (var r = 0; r < this.size; r++) {
 		var row = this.gridState[r];
 
-		var last = xy.TileState.EMPTY;
+		var last = xy.TileState.EMPTY.name;
 		var matches = 0;
 		var counts = {
 			empty: 0,
@@ -202,8 +215,8 @@ xy.Validator.prototype.evalScoreRow = function(score) {
 		for (var c = 0; c < this.size; c++) {
 			var state = row[c];
 
-			if (state != last) {
-				last = state;
+			if (state.name != last) {
+				last = state.name;
 				matches = 0;
 			} else {
 				matches++;
@@ -239,7 +252,7 @@ xy.Validator.prototype.evalScoreRow = function(score) {
 
 xy.Validator.prototype.evalScoreCol = function(score) {
 	for (var c = 0; c < this.size; c++) {
-		var last = xy.TileState.EMPTY;
+		var last = xy.TileState.EMPTY.name;
 		var matches = 0;
 		var counts = {
 			empty: 0,
@@ -250,8 +263,8 @@ xy.Validator.prototype.evalScoreCol = function(score) {
 		for (var r = 0; r < this.size; r++) {
 			var state = this.gridState[r][c];
 
-			if (state != last) {
-				last = state;
+			if (state.name != last) {
+				last = state.name;
 				matches = 0;
 			} else {
 				matches++;
@@ -351,8 +364,8 @@ xy.Generator.prototype.getEmptyLine = function(size) {
 xy.Generator.prototype.generate = function(size) {
 	var puzzle = this.createEmpty(size);
 	var picks = [
-		xy.TileState.X,
-		xy.TileState.Y
+		xy.TileState.LOCKED_X,
+		xy.TileState.LOCKED_Y
 	];
 	var places = [];
 	for (var r = 0; r < size; r++)

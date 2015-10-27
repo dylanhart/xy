@@ -73,3 +73,7 @@ body {
 	background-image: url("./y.svg");
 	background-size: 100%;
 }
+
+.tile.locked {
+	border-color: #ff0;
+}
